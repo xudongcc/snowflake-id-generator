@@ -1,47 +1,50 @@
 export interface SnowflakeIdGeneratorOptions {
+  timestampBits?: number | bigint;
+  machineBits?: number | bigint;
+
   epoch?: number | bigint;
   machineId?: number | bigint;
-
-  totalBits?: number | bigint;
-  epochBits?: number | bigint;
-  machineBits?: number | bigint;
 }
 
 export class SnowflakeIdGenerator {
-  private readonly totalBits: bigint;
-  private readonly epochBits: bigint;
-  private readonly machineBits: bigint;
-  private readonly incrementBits: bigint;
+  private sequence = 0n;
+
+  private readonly timestampBits: bigint;
+  private readonly machineIdBits: bigint;
+  private readonly sequenceBits: bigint;
+
+  private readonly timestampShift: bigint;
+  private readonly machineIdShift: bigint;
+
+  private readonly sequenceMask: bigint;
 
   private readonly epoch: bigint;
   private readonly machineId: bigint;
 
-  private index = 0n;
-
-  private get incrementId() {
-    return (this.index = ++this.index % 2n ** this.incrementBits);
-  }
-
   constructor(options?: SnowflakeIdGeneratorOptions) {
-    this.totalBits = BigInt(options?.totalBits || 64n);
-    this.epochBits = BigInt(options?.epochBits || 41n);
-    this.machineBits = BigInt(options?.machineBits || 10n);
-    this.incrementBits = this.totalBits - this.epochBits - this.machineBits;
+    this.timestampBits = BigInt(options?.timestampBits || 41n);
+    this.machineIdBits = BigInt(options?.machineBits || 10n);
+    this.sequenceBits = 64n - this.timestampBits - this.machineIdBits;
+
+    this.timestampShift = this.sequenceBits + this.machineIdBits;
+    this.machineIdShift = this.sequenceBits;
+
+    this.sequenceMask = 2n ** this.sequenceBits;
 
     this.epoch = BigInt(options?.epoch || new Date("2020-01-01").getTime());
 
     this.machineId = BigInt(
       options?.machineId ||
-        Math.floor(Math.random() * 2 ** Number(this.machineBits))
+        Math.floor(Math.random() * 2 ** Number(this.machineIdBits))
     );
   }
 
   next(): bigint {
     const diff = BigInt(Date.now()) - this.epoch;
 
-    let id = diff << (this.totalBits - this.epochBits);
-    id |= this.machineId << this.machineBits;
-    id |= this.incrementId << this.incrementBits;
+    let id = diff << this.timestampShift;
+    id |= this.machineId << this.machineIdShift;
+    id |= this.sequence = ++this.sequence % this.sequenceMask;
 
     return id;
   }
