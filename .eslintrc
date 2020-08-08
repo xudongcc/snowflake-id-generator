@@ -1,0 +1,20 @@
+{
+  "env": {
+    "node": true,
+    "jest": true
+  },
+  "extends": [
+    "standard",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "prettier/@typescript-eslint",
+    "prettier/standard"
+  ],
+  "parserOptions": {
+    "project": "tsconfig.json"
+  },
+  "plugins": ["simple-import-sort"],
+  "rules": {
+    "simple-import-sort/sort": "error"
+  }
+}
