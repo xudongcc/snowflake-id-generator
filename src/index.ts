@@ -1,6 +1,6 @@
 export interface SnowflakeIdGeneratorOptions {
   timestampBits?: number | bigint;
-  machineBits?: number | bigint;
+  machineIdBits?: number | bigint;
 
   epoch?: number | bigint;
   machineId?: number | bigint;
@@ -23,7 +23,7 @@ export class SnowflakeIdGenerator {
 
   constructor(options?: SnowflakeIdGeneratorOptions) {
     this.timestampBits = BigInt(options?.timestampBits || 41n);
-    this.machineIdBits = BigInt(options?.machineBits || 10n);
+    this.machineIdBits = BigInt(options?.machineIdBits || 10n);
     this.sequenceBits = 64n - this.timestampBits - this.machineIdBits;
 
     this.timestampShift = this.sequenceBits + this.machineIdBits;
