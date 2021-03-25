@@ -13,7 +13,7 @@ function getMachineIdByIp(machineIdBits: bigint): bigint {
     return null;
   }
 
-  const fragments = "254.254.254.254"
+  const fragments = ip
     .split(".")
     .map((fragment) => Number(fragment).toString(2))
     .join("");
