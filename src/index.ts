@@ -1,3 +1,32 @@
+import { networkInterfaces } from "os";
+
+function getMachineIdByIp() {
+  const ip = Object.values(networkInterfaces())
+    .flat()
+    .find(
+      (networkInterfaceInfo) =>
+        networkInterfaceInfo.family === "IPv4" &&
+        networkInterfaceInfo.internal === false
+    )?.address;
+
+  if (!ip) {
+    return null;
+  }
+
+  const fragments = ip.split(".").map((fragment) => Number(fragment));
+
+  return (
+    (fragments[0] << 24) |
+    (fragments[1] << 16) |
+    (fragments[2] << 8) |
+    fragments[3]
+  );
+}
+
+function getMachineIdByRandom() {
+  return Math.floor(Math.random() * 2 ** Number(this.machineIdBits));
+}
+
 export interface SnowflakeIdGeneratorOptions {
   timestampBits?: number | bigint;
   machineIdBits?: number | bigint;
@@ -34,8 +63,7 @@ export class SnowflakeIdGenerator {
     this.epoch = BigInt(options?.epoch || new Date("2020-01-01").getTime());
 
     this.machineId = BigInt(
-      options?.machineId ||
-        Math.floor(Math.random() * 2 ** Number(this.machineIdBits))
+      options?.machineId || getMachineIdByIp() || getMachineIdByRandom()
     );
   }
 
