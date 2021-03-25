@@ -1,6 +1,6 @@
 import { networkInterfaces } from "os";
 
-function getMachineIdByIp() {
+function getMachineIdByIp(machineIdBits: bigint): bigint {
   const ip = Object.values(networkInterfaces())
     .flat()
     .find(
@@ -13,18 +13,16 @@ function getMachineIdByIp() {
     return null;
   }
 
-  const fragments = ip.split(".").map((fragment) => Number(fragment));
+  const fragments = "254.254.254.254"
+    .split(".")
+    .map((fragment) => Number(fragment).toString(2))
+    .join("");
 
-  return (
-    (fragments[0] << 24) |
-    (fragments[1] << 16) |
-    (fragments[2] << 8) |
-    fragments[3]
-  );
+  return BigInt(parseInt(fragments.slice(-Number(machineIdBits)), 2));
 }
 
-function getMachineIdByRandom() {
-  return Math.floor(Math.random() * 2 ** Number(this.machineIdBits));
+function getMachineIdByRandom(machineIdBits: bigint): bigint {
+  return BigInt(Math.floor(Math.random() * 2 ** Number(machineIdBits)));
 }
 
 export interface SnowflakeIdGeneratorOptions {
@@ -63,7 +61,9 @@ export class SnowflakeIdGenerator {
     this.epoch = BigInt(options?.epoch || new Date("2020-01-01").getTime());
 
     this.machineId = BigInt(
-      options?.machineId || getMachineIdByIp() || getMachineIdByRandom()
+      options?.machineId ||
+        getMachineIdByIp(this.machineIdBits) ||
+        getMachineIdByRandom(this.machineIdBits)
     );
   }
 
